@@ -1,0 +1,15 @@
+﻿# File rác hệ thống
+.DS_Store
+Thumbs.db
+
+# File rác sinh ra khi chạy Terraform local
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
+
+# File cấu hình nhạy cảm chứa key bảo mật
+.env
+*.pem
+*.kube/config
