@@ -1,10 +1,15 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: monitoring.coreos.com/v1 # 🌟 BẮT BUỘC PHẢI LÀ ĐƯỜNG DẪN NÀY, KHÔNG DÙNG argoproj.io
 kind: ServiceMonitor
 metadata:
   name: api-servicemonitor
-  namespace: demo                     # 🌟 Bắt buộc phải đặt chung Namespace với App Flask của Ty
+  namespace: demo                     # Đặt chung phòng với App Flask của Ty
   labels:
-    release: kube-prometheus-stack    # 🌟 CHÍ MẠNG: Phải khớp với nhãn release của cụm Prometheus Stack bạn cài ở Lab 1
+    release: kube-prometheus-stack    # Thẻ bài để Prometheus nhận diện
 spec:
-  selector: { matchLabels: { app: api } }
-  endpoints: [ { port: http, path: /metrics, interval: 15s } ]
+  selector:
+    matchLabels:
+      app: api                        # Trỏ đúng vào label app: api của con Service
+  endpoints:
+    - port: http                      # Tên cổng mạng ứng dụng
+      path: /metrics                  # Đường dẫn rút dữ liệu
+      interval: 15s
