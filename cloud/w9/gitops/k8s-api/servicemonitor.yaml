@@ -1,0 +1,10 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ServiceMonitor
+metadata:
+  name: api-servicemonitor
+  namespace: demo                     # 🌟 Bắt buộc phải đặt chung Namespace với App Flask của Ty
+  labels:
+    release: kube-prometheus-stack    # 🌟 CHÍ MẠNG: Phải khớp với nhãn release của cụm Prometheus Stack bạn cài ở Lab 1
+spec:
+  selector: { matchLabels: { app: api } }
+  endpoints: [ { port: http, path: /metrics, interval: 15s } ]
