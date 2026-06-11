@@ -7,7 +7,6 @@ kind: Deployment   # apps/v1, wave 1
 metadata: { name: web, namespace: demo,
   annotations: { argocd.argoproj.io/sync-wave: "1" } }
 spec:
-  project: default
   replicas: 2
   selector: { matchLabels: { app: web } }
   template:
