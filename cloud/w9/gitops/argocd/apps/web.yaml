@@ -1,17 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
-metadata:
-  name: web
-  namespace: argocd
+metadata: { name: web, namespace: argocd }
 spec:
-  # ⬇️ Bổ sung dòng project quản lý vào đây ⬇️
-  project: default
-  source:
-    repoURL: 'https://github.com/Eren206/Eren206-aws-accelerator-p2.git'
-    path: cloud/w9/gitops/k8s
-  destination:
-    server: 'https://kubernetes.default.svc'
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  source: { repoURL: https://github.com/Eren206/Eren206-aws-accelerator-p2.git, path: cloud/w9/gitops/k8s }
+  destination: { server: https://kubernetes.default.svc, namespace: demo }
+  syncPolicy: { automated: { prune: true, selfHeal: true } }
