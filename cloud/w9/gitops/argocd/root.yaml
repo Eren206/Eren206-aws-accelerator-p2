@@ -4,6 +4,6 @@ metadata: { name: root, namespace: argocd }
 spec:
   source:
     repoURL: https://github.com/Eren206/Eren206-aws-accelerator-p2.git
-    path: argocd/apps        # <- thư mục chứa các App con (đã có web.yaml)
+    path: cloud/w9/gitops/argocd/apps     
   destination: { server: https://kubernetes.default.svc, namespace: argocd }
   syncPolicy: { automated: { prune: true, selfHeal: true } }
