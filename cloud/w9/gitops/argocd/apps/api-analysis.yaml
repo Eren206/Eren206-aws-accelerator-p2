@@ -6,9 +6,10 @@ metadata:
 spec:
   metrics:
   - name: success-rate
-    interval: 10s                         # Cứ 10 giây sang hỏi Prometheus một lần
+    interval: 20s 
+    count: 3                        # Cứ 20 giây sang hỏi Prometheus một lần
     successCondition: result[0] >= 0.95   # Tỷ lệ request thành công phải >= 95% (Dưới 95% là hẻo)
-    failureLimit: 2                       # Cho phép tối đa 2 lần kiểm tra bị trượt, lần thứ 3 là Abort
+    failureLimit: 3                       # Cho phép tối đa 2 lần kiểm tra bị trượt, lần thứ 3 là Abort
     provider:
       prometheus:
         # Địa chỉ Service của Prometheus bên namespace monitoring
