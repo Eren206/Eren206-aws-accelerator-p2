@@ -14,11 +14,11 @@ spec:
         imagePullPolicy: IfNotPresent
         ports: [ { name: http, containerPort: 8080 } ]
         env:
-        - { name: ERROR_RATE, value: "0" }
+        - { name: ERROR_RATE, value: "50" }
         - { name: VERSION,    value: "v2" }
         readinessProbe: { httpGet: { path: /healthz, port: 8080 } }
   strategy:
-    canary:                  # Lab 4 dùng tới
+    canary:                  
       steps: [ { setWeight: 25 }, { pause: {} },
                { setWeight: 50 }, { pause: { duration: 30s } },
                { setWeight: 100 } ]
