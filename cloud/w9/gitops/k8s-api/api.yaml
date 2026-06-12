@@ -18,10 +18,17 @@ spec:
         - { name: VERSION,    value: "v2" }
         readinessProbe: { httpGet: { path: /healthz, port: 8080 } }
   strategy:
-    canary:                  
-      steps: [ { setWeight: 25 }, { pause: {} },
-               { setWeight: 50 }, { pause: { duration: 30s } },
-               { setWeight: 100 } ]
+    canary:   
+      steps:
+        - setWeight: 25
+        # 🌟 TỰ ĐỘNG HÓA: Ép Argo Rollouts chạy phân tích tự động tại bước 25% tải này
+        - analysis:
+            templates:
+              - templateName: flask-api-success-rate # Khớp với tên AnalysisTemplate ở Bước 1
+        - pause: { duration: 30s }
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - setWeight: 100
 #service cho Rollout api, để ServiceMonitor có thể lấy metrics từ endpoint /metrics của con Rollout này               
 ---
 apiVersion: v1
