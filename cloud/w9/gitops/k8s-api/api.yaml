@@ -15,13 +15,14 @@ spec:
         ports: [ { name: http, containerPort: 8080 } ]
         env:
         - { name: ERROR_RATE, value: "0" }
-        - { name: VERSION,    value: "v1" }
+        - { name: VERSION,    value: "v2" }
         readinessProbe: { httpGet: { path: /healthz, port: 8080 } }
   strategy:
     canary:                  # Lab 4 dùng tới
       steps: [ { setWeight: 25 }, { pause: {} },
                { setWeight: 50 }, { pause: { duration: 30s } },
                { setWeight: 100 } ]
+#service cho Rollout api, để ServiceMonitor có thể lấy metrics từ endpoint /metrics của con Rollout này               
 ---
 apiVersion: v1
 kind: Service
