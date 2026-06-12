@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: flask-api-success-rate
+  namespace: demo                         # Đặt chung phòng với con Rollout api
+spec:
+  metrics:
+  - name: success-rate
+    interval: 10s                         # Cứ 10 giây sang hỏi Prometheus một lần
+    successCondition: result[0] >= 0.95   # Tỷ lệ request thành công phải >= 95% (Dưới 95% là hẻo)
+    failureLimit: 2                       # Cho phép tối đa 2 lần kiểm tra bị trượt, lần thứ 3 là Abort
+    provider:
+      prometheus:
+        # Địa chỉ Service của Prometheus bên namespace monitoring
+        address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        query: |
+          sum(rate(flask_http_request_duration_seconds_count{namespace="demo", status!~"5.*"}[1m]))
+          /
+          sum(rate(flask_http_request_duration_seconds_count{namespace="demo"}[1m]))
