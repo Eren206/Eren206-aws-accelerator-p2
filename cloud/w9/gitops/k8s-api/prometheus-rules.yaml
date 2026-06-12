@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flask-api-alerts
+  namespace: monitoring                 # Nằm bên phòng quản lý giám sát
+  labels:
+    release: kube-prometheus-stack    # Thẻ bài để Prometheus tự động nạp luật này
+spec:
+  groups:
+  - name: flask-slo-alerts
+    rules:
+    - alert: FlaskApiSloViolation
+      expr: |
+        sum(rate(flask_http_request_total{status=~"5.."}[2m])) 
+        / 
+        sum(rate(flask_http_request_total[2m])) > 0.05
+      for: 1m                           # Lỗi kéo dài liên tục 1 phút thì mới kích hoạt alert
+      labels:
+        severity: critical              # Mức độ nghiêm trọng để phân loại gửi email
+      annotations:
+        summary: "SLO Violated: High error rate detected on Flask API"
+        description: "The error rate of Flask API is {{ $value | humanizePercentage }}, which is higher than the SLO threshold of 5%."
