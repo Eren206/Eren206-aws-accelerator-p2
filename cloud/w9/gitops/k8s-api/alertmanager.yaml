@@ -10,20 +10,28 @@ spec:
     groupBy: ['alertname']
     groupWait: 10s
     groupInterval: 10s
-    repeatInterval: 5m                  # Sau 5 phút nếu lỗi chưa hết thì gửi email nhắc lại
+    repeatInterval: 5m
     receiver: 'Gmail-Receiver'
     routes:
+    # 🌟 BỔ SUNG KHỐI NÀY: Bắt toàn bộ alert bắn ra từ namespace demo
+    - matchers:
+      - name: namespace
+        value: demo
+        matchType: =
+      receiver: 'Gmail-Receiver'
+    # Khối cũ của Ty giữ nguyên
     - matchers:
       - name: severity
-        value: critical                 # Chỉ bắt các alert có nhãn severity: critical để gửi mail
+        value: critical
         matchType: =
+      receiver: 'Gmail-Receiver'
   receivers:
   - name: 'Gmail-Receiver'
     emailConfigs:
-    - to: 'dinhvanty206@gmail.com'        # 🌟 Thay bằng Email nhận của Ty
-      from: 'dinhvanty206@gmail.com'      # 🌟 Thay bằng Email gửi (thường trùng email trên)
-      smarthost: 'smtp.gmail.com:587'   # Máy chủ SMTP của Google
+    - to: 'dinhvanty206@gmail.com'
+      from: 'dinhvanty206@gmail.com'
+      smarthost: 'smtp.gmail.com:587'
       authUsername: 'dinhvanty206@gmail.com'
       authPassword:
-        name: gmail-secret              # Chúng ta sẽ giấu mật khẩu ứng dụng vào Secret ở bước sau
+        name: gmail-secret
         key: password
