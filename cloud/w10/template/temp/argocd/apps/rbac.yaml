@@ -1,21 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-	name: rbac
-	namespace: argocd
+  name: rbac
+  namespace: argocd # Giữ nguyên vì server ArgoCD nằm ở đây để quản lý
 spec:
-	project: default
-	source:
-		repoURL: 'https://github.com/Eren206/Eren206-aws-accelerator-p2.git'
-		path: 'cloud/w10/template/temp/rbac'
-		targetRevision: HEAD
-	destination:
-		server: 'https://kubernetes.default.svc'
-		namespace: default
-	syncPolicy:
-		automated:
-			prune: true
-			selfHeal: true
-		syncOptions:
-			- CreateNamespace=true
-
+  project: default
+  source:
+    repoURL: 'https://github.com/Eren206/Eren206-aws-accelerator-p2.git'
+    path: 'cloud/w10/template/temp/rbac'
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    # 🌟 SỬA TẠI ĐÂY: Chuyển về "demo" hoặc để trống nếu file con đã tự định nghĩa namespace
+    namespace: demo 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # 🌟 Giữ lại để ArgoCD tự tạo namespace "demo" nếu cụm EKS/Lab của Ty chưa có sẵn
+      - CreateNamespace=true
