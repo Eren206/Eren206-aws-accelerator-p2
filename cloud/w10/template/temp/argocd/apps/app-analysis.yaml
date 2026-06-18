@@ -9,8 +9,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Vuong-Bach/temp.git
-    path: app-analysis
+    repoURL: https://github.com/Eren206/Eren206-aws-accelerator-p2.git
+    path: cloud/w10/template/temp/app-analysis
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc
