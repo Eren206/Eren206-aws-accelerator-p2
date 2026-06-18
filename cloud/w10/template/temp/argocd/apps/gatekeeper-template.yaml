@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Eren206/Eren206-aws-accelerator-p2.git
-    path: gatekeeper/templates
+    path: cloud/w10/template/temp/gatekeeper/templates
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc
