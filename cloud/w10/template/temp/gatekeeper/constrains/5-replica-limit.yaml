@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sReplicaLimits # 🌟 Khớp hoàn toàn với tên loại luật (Kind) của Template Ty đang dùng
+metadata:
+  name: reject-deployment-high-replicas
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"] # Chỉ áp dụng bộ lọc lên tài nguyên Deployment
+    namespaces:
+      - demo # Giới hạn trong namespace demo (Ty có thể bỏ trường này nếu muốn áp dụng toàn cụm)
+  parameters:
+    # 🌟 Trường tham số đầu vào (Ty check lại file Template xem có đúng là viết dạng maxReplicas không nhé)
+    maxReplicas: 5
