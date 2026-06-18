@@ -11,5 +11,6 @@ Thumbs.db
 
 # File cấu hình nhạy cảm chứa key bảo mật
 .env
+.key
 *.pem
 *.kube/config

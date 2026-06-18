@@ -1,0 +1,44 @@
+# =====================================================================
+# 🚀 1. ROLE CHO DEVELOPER (Giới hạn trong Namespace "demo")
+# =====================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: developer-role
+  namespace: demo # 🌟 Quyền hạn chỉ có hiệu lực bên trong phòng demo
+rules:
+- apiGroups: ["", "apps"] # "" là Core group (Pod, Service), "apps" chứa Deployment
+  resources: ["deployments", "pods", "services", "pods/log", "pods/exec"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+# =====================================================================
+# 🚀 2. ROLE CHO SRE (Xem toàn cụm + Thao tác Pod trên mọi Namespace)
+# =====================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sre-cluster-role # 🌟 Sử dụng ClusterRole để bao phủ mọi Namespace
+rules:
+# Luật 1: Quyền xem (ReadOnly) tất cả tài nguyên trong cụm để phục vụ giám sát
+- apiGroups: ["*", "apps", "extensions"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+
+# Luật 2: Đặc quyền can thiệp, xử lý sự cố (CRUD) riêng đối với các Pod
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "pods/exec"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+# =====================================================================
+# 🚀 3. ROLE CHO VIEWER (Quyền chỉ đọc - Toàn cụm)
+# =====================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: custom-viewer-cluster-role
+rules:
+- apiGroups: ["*", "apps", "extensions"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
