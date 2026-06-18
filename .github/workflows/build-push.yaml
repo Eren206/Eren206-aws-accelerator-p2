@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/w10-api
+  # 🌟 Đã xóa IMAGE_NAME ở đây để thiết lập động ở bước dưới nhằm tránh lỗi in hoa
 
 jobs:
   build-and-push:
@@ -26,6 +26,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # 🌟 BƯỚC MỚI: Chuyển đổi tên owner thành chữ thường và thiết lập vào cấu hình môi trường
+      - name: Lowercase Repository Owner Name
+        run: |
+          LOWERSCASED_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${LOWERSCASED_OWNER}/w10-api" >> $GITHUB_ENV
 
       - name: Calculate semantic version
         id: semver
@@ -64,6 +70,7 @@ jobs:
 
       - name: Update rollout.yaml with new version
         run: |
+          # Dùng biến IMAGE_NAME đã được hạ chữ thường ở trên để ghi đè chuẩn xác vào tệp rollout
           sed -i "s|image: ghcr.io/.*/w10-api:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}|g" cloud/w10/template/temp/app-api/rollout.yaml
           sed -i "s|value: \"v.*\"|value: \"v${{ steps.semver.outputs.version }}\"|g" cloud/w10/template/temp/app-api/rollout.yaml
 
