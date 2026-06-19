@@ -3,7 +3,6 @@ import os
 import random
 from flask import Flask, jsonify
 from prometheus_flask_exporter import PrometheusMetrics
-###
 app = Flask(__name__)
 PrometheusMetrics(app)  # /metrics
 
