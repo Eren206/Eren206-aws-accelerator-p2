@@ -10,4 +10,4 @@ spec:
     namespaces:
       - demo 
   parameters:
-    maxReplicas: 5
+    maxReplicas: '5'
