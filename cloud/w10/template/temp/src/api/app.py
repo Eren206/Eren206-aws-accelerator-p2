@@ -5,7 +5,7 @@ from flask import Flask, jsonify
 from prometheus_flask_exporter import PrometheusMetrics
 app = Flask(__name__)
 PrometheusMetrics(app)  # /metrics
-
+###
 VERSION = os.getenv("VERSION", "v1")
 DB_PASSWORD_PATH = os.getenv("DB_PASSWORD_PATH",
                              "/secrets/password")
