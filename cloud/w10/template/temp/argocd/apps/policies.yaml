@@ -10,7 +10,7 @@ spec:
     targetRevision: main
     path: cloud/w10/template/temp/policies # Trỏ tới thư mục chứa ClusterImagePolicy
   destination:
-    server: https://kubernetes.default.sv`````````````4c
+    server: https://kubernetes.default.svc
     namespace: default
   syncPolicy:
     automated:
