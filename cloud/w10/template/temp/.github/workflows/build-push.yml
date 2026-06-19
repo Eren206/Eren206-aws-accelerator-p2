@@ -6,13 +6,12 @@ on:
     branches:
       - main
     paths:
-      - 'src/api/**'
+      - 'cloud/w10/template/temp/src/api/**'
       - '.github/workflows/build-push.yml'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/w10-api
 
 jobs:
   build-and-push:
@@ -20,12 +19,19 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write # Thêm quyền nếu sau này Ty dùng Cosign Keyless
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # 🌟 Chuyển đổi tên owner thành chữ thường và thiết lập vào cấu hình môi trường
+      - name: Lowercase Repository Owner Name
+        run: |
+          LOWERSCASED_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${LOWERSCASED_OWNER}/w10-api" >> $GITHUB_ENV
 
       - name: Calculate semantic version
         id: semver
@@ -54,24 +60,58 @@ jobs:
             type=raw,value=${{ steps.semver.outputs.version }}
             type=sha,prefix=v${{ steps.semver.outputs.version }}-
 
-      - name: Build and push Docker image
+      # 🌟 CẢI TIẾN: Build và lưu cục bộ (local) trước để Trivy kiểm tra sát hạch
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Image Locally (Do not push yet)
         uses: docker/build-push-action@v6
         with:
-          context: ./src/api
+          context: ./cloud/w10/template/temp/src/api
+          load: true # 🌟 Bơm thẳng vào docker daemon cục bộ của Runner để quét
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
+          labels: ${{ meta.outputs.labels }}
+
+      # 🌟 NEW & FIXED: Quét image cục bộ, nếu dính CVE HIGH/CRITICAL sẽ BẺ GÃY pipeline tại đây luôn, ngăn chặn đẩy lên Registry
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }} # 🌟 FIXED: Đã sửa lỗi biến steps.image thành env.IMAGE_NAME
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          format: 'table'
+
+      # 🌟 SAU KHI SẠCH CVE: Tiến hành đẩy Image sạch lên GHCR thật
+      - name: Push Clean Docker image to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: ./cloud/w10/template/temp/src/api
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      # 🌟 COSIGN SIGNING
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4
+
+      - name: Sign Docker Image
+        run: |
+          echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+          cosign sign --y --key cosign.key ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }} # 🌟 FIXED: Sửa tên biến gọi Image
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+      # 🌟 GITOPS AUTOMATION (ARGO ROLLOUTS)
       - name: Update rollout.yaml with new version
         run: |
-          sed -i "s|image: ghcr.io/.*/w10-api:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}|g" app-api/rollout.yaml
-          sed -i "s|value: \"v.*\"|value: \"v${{ steps.semver.outputs.version }}\"|g" app-api/rollout.yaml
+          sed -i "s|image: ghcr.io/.*/w10-api:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}|g" cloud/w10/template/temp/app-api/rollout.yaml
+          sed -i "s|value: \"v.*\"|value: \"v${{ steps.semver.outputs.version }}\"|g" cloud/w10/template/temp/app-api/rollout.yaml
 
       - name: Commit and push version update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app-api/rollout.yaml
+          git add cloud/w10/template/temp/app-api/rollout.yaml
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
