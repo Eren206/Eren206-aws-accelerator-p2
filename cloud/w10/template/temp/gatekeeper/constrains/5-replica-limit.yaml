@@ -1,13 +1,15 @@
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sReplicaLimits 
+kind: K8sReplicaLimits
 metadata:
   name: reject-deployment-high-replicas
 spec:
   match:
     kinds:
-      - apiGroups: ["apps"]
-        kinds: ["Deployment"] # Chỉ áp dụng bộ lọc lên tài nguyên Deployment
+    - apiGroups: ["apps"]
+      kinds: ["Deployment"]
     namespaces:
-      - demo 
+    - demo
   parameters:
-    maxReplicas: '5'
+    ranges:
+    - min_replicas: 1
+      max_replicas: 5
