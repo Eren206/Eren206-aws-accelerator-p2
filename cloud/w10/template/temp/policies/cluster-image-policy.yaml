@@ -1,0 +1,14 @@
+apiVersion: policy.sigstore.dev/v1alpha1
+kind: ClusterImagePolicy
+metadata:
+  name: image-signature-policy
+spec:
+  images:
+    - glob: "ghcr.io/eren206/w10-api:*" # Khớp với image pattern của bạn
+  authorities:
+    - key:
+        data: |
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAErYq7AZOA6biBgdrNIpQgTwOwM4qz
+          mDnvpEc4iS9FBN2rE4DLybDbfe4UmHAGWmN7QeRxGGOhlaxf3FtC9/0lfQ==
+          -----END PUBLIC KEY-----

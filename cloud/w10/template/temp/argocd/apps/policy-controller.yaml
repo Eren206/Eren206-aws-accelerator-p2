@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: policy-controller
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: policy-controller
+    repoURL: https://sigstore.github.io/helm-charts
+    targetRevision: 0.*
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cosign-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+  ignoreDifferences:
+      - group: admissionregistration.k8s.io
+        kind: MutatingWebhookConfiguration
+        name: policy.sigstore.dev
+        jsonPointers:
+          - /webhooks/0/namespaceSelector/matchExpressions
+      - group: admissionregistration.k8s.io
+        kind: ValidatingWebhookConfiguration
+        name: policy.sigstore.dev
+        jsonPointers:
+          - /webhooks/0/namespaceSelector/matchExpressions
