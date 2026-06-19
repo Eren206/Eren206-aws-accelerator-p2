@@ -12,7 +12,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # 🌟 Đã xóa IMAGE_NAME ở đây để thiết lập động ở bước dưới nhằm tránh lỗi in hoa
 
 jobs:
   build-and-push:
@@ -20,6 +19,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write # Thêm quyền nếu sau này Ty dùng Cosign Keyless
 
     steps:
       - name: Checkout repository
@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 🌟 BƯỚC MỚI: Chuyển đổi tên owner thành chữ thường và thiết lập vào cấu hình môi trường
+      # 🌟 Chuyển đổi tên owner thành chữ thường và thiết lập vào cấu hình môi trường
       - name: Lowercase Repository Owner Name
         run: |
           LOWERSCASED_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
@@ -60,7 +60,29 @@ jobs:
             type=raw,value=${{ steps.semver.outputs.version }}
             type=sha,prefix=v${{ steps.semver.outputs.version }}-
 
-      - name: Build and push Docker image
+      # 🌟 CẢI TIẾN: Build và lưu cục bộ (local) trước để Trivy kiểm tra sát hạch
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Image Locally (Do not push yet)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./cloud/w10/template/temp/src/api
+          load: true # 🌟 Bơm thẳng vào docker daemon cục bộ của Runner để quét
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
+          labels: ${{ meta.outputs.labels }}
+
+      # 🌟 NEW & FIXED: Quét image cục bộ, nếu dính CVE HIGH/CRITICAL sẽ BẺ GÃY pipeline tại đây luôn, ngăn chặn đẩy lên Registry
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }} # 🌟 FIXED: Đã sửa lỗi biến steps.image thành env.IMAGE_NAME
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          format: 'table'
+
+      # 🌟 SAU KHI SẠCH CVE: Tiến hành đẩy Image sạch lên GHCR thật
+      - name: Push Clean Docker image to GHCR
         uses: docker/build-push-action@v6
         with:
           context: ./cloud/w10/template/temp/src/api
@@ -68,9 +90,20 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      # 🌟 COSIGN SIGNING
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4
+
+      - name: Sign Docker Image
+        run: |
+          echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+          cosign sign --y --key cosign.key ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }} # 🌟 FIXED: Sửa tên biến gọi Image
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+      # 🌟 GITOPS AUTOMATION (ARGO ROLLOUTS)
       - name: Update rollout.yaml with new version
         run: |
-          # Dùng biến IMAGE_NAME đã được hạ chữ thường ở trên để ghi đè chuẩn xác vào tệp rollout
           sed -i "s|image: ghcr.io/.*/w10-api:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}|g" cloud/w10/template/temp/app-api/rollout.yaml
           sed -i "s|value: \"v.*\"|value: \"v${{ steps.semver.outputs.version }}\"|g" cloud/w10/template/temp/app-api/rollout.yaml
 
