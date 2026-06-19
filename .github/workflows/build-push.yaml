@@ -70,7 +70,7 @@ jobs:
           context: ./cloud/w10/template/temp/src/api
           load: true # 🌟 Bơm thẳng vào docker daemon cục bộ của Runner để quét
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
-          labels: ${{ meta.outputs.labels }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       # 🌟 NEW & FIXED: Quét image cục bộ, nếu dính CVE HIGH/CRITICAL sẽ BẺ GÃY pipeline tại đây luôn, ngăn chặn đẩy lên Registry
       - name: Run Trivy vulnerability scanner
