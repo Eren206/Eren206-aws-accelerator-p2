@@ -1,0 +1,32 @@
+# AWS Region - change to your preferred region
+aws_region = "ap-southeast-1"
+
+# Environment name
+environment = "dev"
+
+# Project name prefix for resource naming
+project_name = "macie-lab"
+
+# S3 Bucket name (must be globally unique)
+# AWS will append account ID to ensure uniqueness
+s3_bucket_name = "macie-hands-on-demo-v1"
+
+# IMPORTANT: Replace with your actual email address to receive SNS notifications
+# You will need to confirm the subscription via email link
+email_address = "your-email@example.com"
+
+# Macie job name
+macie_job_name = "S3-Sensitive-Data-Scan-Job"
+
+# SNS topic name
+sns_topic_name = "Macie-Alerts-Topic"
+
+# Enable Macie job creation
+# Set to false if you only want to test infrastructure without running the actual Macie job
+enable_macie_job = true
+
+# Additional tags for resources
+tags = {
+  Lab      = "AWS-Macie-Sensitive-Data-Detection"
+  Instructor = "AWS-Learning"
+}
